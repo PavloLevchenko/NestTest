@@ -17,12 +17,25 @@ import {
 } from "./dto";
 import { EmptyBodyValidationPipe } from "../common/emptyBodyValidationPipe";
 import { JwtAuthGuard } from "../auth/guards";
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
+import { Auth } from "src/common/auth.decorator";
+import { Contact } from "./entities/contact.entity";
 
-@UseGuards(JwtAuthGuard)
+@Auth()
+@ApiTags("contacts")
 @Controller("api/contacts")
+@ApiResponse({ status: 404, description: 'Contact not found' })
 export class ContactsController {
   constructor(private readonly contactsService: ContactsService) {}
 
+  /**
+   * Create contact
+   */
   @Post()
   async create(@Body() createContactDto: CreateContactDto) {
     console.log(createContactDto);

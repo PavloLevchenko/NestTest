@@ -1,5 +1,6 @@
-export const jwtConstants = {
+export const authConstants = {
   secret: process.env.JWT_SECRET,
   expiresIn: "10h",
-  strategy: "Email and password",
+  localStrategyName: "Email and password",
+  localStrategyFields: { usernameField: "email", passwordField: "password" },
 };

@@ -7,10 +7,10 @@ import { AuthGuard } from "@nestjs/passport";
 import { validateSync } from "class-validator";
 import { plainToInstance } from "class-transformer";
 import { LoginDto } from "../dto/login.dto";
-import { jwtConstants } from "../constants";
+import { authConstants } from "../constants";
 
 @Injectable()
-export class LocalAuthGuard extends AuthGuard(jwtConstants.strategy) {
+export class LocalAuthGuard extends AuthGuard(authConstants.localStrategyName) {
   validateCredentials(body: any) {
     const credentials = plainToInstance(LoginDto, body);
     const errors = validateSync(credentials, {
@@ -36,7 +36,7 @@ export class LocalAuthGuard extends AuthGuard(jwtConstants.strategy) {
     status?: any,
   ) {
     const request = context.switchToHttp().getRequest();
-    this.validateCredentials(request.body);
+    //this.validateCredentials(request.body);
     return super.handleRequest(err, user, info, context, status);
   }
 }
