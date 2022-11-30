@@ -1,4 +1,4 @@
-import { PartialType } from "@nestjs/swagger";
-import { CreateUserDto } from "./create-user.dto";
+import { PickType } from "@nestjs/swagger";
+import { UserEntity } from "../entities/user.entity";
 
-export class UpdateUserSubscribtion extends PartialType(CreateUserDto) {}
+export class UpdateUserSubscribtion extends PickType(UserEntity, ['subscription'] as const) {}

@@ -7,11 +7,11 @@ import {
   Param,
   Req,
   UseGuards,
+  UseInterceptors,
 } from "@nestjs/common";
 import { AuthService } from "../auth/auth.service";
 import { LocalAuthGuard, JwtAuthGuard } from "../auth/guards";
 import { CreateUserDto } from "./dto/create-user.dto";
-import { UpdateUserDto } from "./dto/update-user.dto";
 import { UserEntity } from "./entities/user.entity";
 import { User } from "src/common/user.decorator";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
@@ -19,6 +19,7 @@ import { Auth } from "src/common/auth.decorator";
 import { LoginDto } from "src/auth/dto/login.dto";
 import { UsersService } from "./users.service";
 import { UpdateUserSubscribtion } from "./dto/update-user-subscribtion.dto";
+import { FormatUserInterceptor } from "src/common/format-user.interceptor";
 
 @ApiTags('users')
 @Controller("api/users")
@@ -26,6 +27,7 @@ export class UsersController {
   constructor(private authService: AuthService, private usersService: UsersService) {}
 
   @Post("signup")
+  @UseInterceptors(FormatUserInterceptor)
   async signup(@Body() body:CreateUserDto) {
     return this.usersService.signup(body);
   }
@@ -45,6 +47,7 @@ export class UsersController {
 
   @Auth()
   @Get("current")
+  @UseInterceptors(FormatUserInterceptor)
   async getProfile(@User() user: UserEntity) {
     return user;
   }
@@ -52,7 +55,7 @@ export class UsersController {
   @Auth()
   @Patch()
   updateSubscribtion(@User() user: UserEntity, @Body() updateUserSubscribtion: UpdateUserSubscribtion,) {
-    return this.usersService.updateSubscribtion(user._id, updateUserSubscribtion);
+    return this.usersService.updateSubscribtion(user, updateUserSubscribtion);
   }
 
   @Auth()
