@@ -4,6 +4,7 @@ import {
   UpdateContactDto,
   UpdateContactFavoryteDto,
 } from "./dto";
+import { GetContactsDto } from "./dto/get-contact.dto";
 
 @Injectable()
 export class ContactsService {
@@ -11,7 +12,7 @@ export class ContactsService {
     return "This action adds a new contact";
   }
 
-  findAll() {
+  findAll(query: GetContactsDto) {
     return `This action returns all contacts`;
   }
 

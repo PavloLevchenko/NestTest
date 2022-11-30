@@ -7,7 +7,7 @@ import {
   Put,
   Param,
   Delete,
-  UseGuards,
+  Query,
 } from "@nestjs/common";
 import { ContactsService } from "./contacts.service";
 import {
@@ -16,15 +16,13 @@ import {
   UpdateContactFavoryteDto,
 } from "./dto";
 import { EmptyBodyValidationPipe } from "../common/emptyBodyValidationPipe";
-import { JwtAuthGuard } from "../auth/guards";
 import {
-  ApiBearerAuth,
-  ApiOperation,
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
 import { Auth } from "src/common/auth.decorator";
-import { Contact } from "./entities/contact.entity";
+import { GetContactsDto } from "./dto/get-contact.dto";
+
 
 @Auth()
 @ApiTags("contacts")
@@ -43,8 +41,8 @@ export class ContactsController {
   }
 
   @Get()
-  findAll() {
-    return this.contactsService.findAll();
+  findAll(@Query() query: GetContactsDto) {
+    return this.contactsService.findAll(query);
   }
 
   @Get(":id")

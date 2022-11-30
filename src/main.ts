@@ -19,6 +19,9 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       validateCustomDecorators: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+    },
     }),
   );
   app.enableCors();

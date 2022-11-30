@@ -17,12 +17,18 @@ import { User } from "src/common/user.decorator";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
 import { Auth } from "src/common/auth.decorator";
 import { LoginDto } from "src/auth/dto/login.dto";
-import { CreateContactDto } from "src/contacts/dto";
+import { UsersService } from "./users.service";
+import { UpdateUserSubscribtion } from "./dto/update-user-subscribtion.dto";
 
 @ApiTags('users')
 @Controller("api/users")
 export class UsersController {
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService, private usersService: UsersService) {}
+
+  @Post("signup")
+  async signup(@Body() body:CreateUserDto) {
+    return this.usersService.signup(body);
+  }
 
   @UseGuards(LocalAuthGuard)
   @ApiBody({ type: LoginDto })
@@ -32,8 +38,38 @@ export class UsersController {
   }
 
   @Auth()
+  @Get("logout")
+  logout() {
+    return this.authService.logout();
+  }
+
+  @Auth()
   @Get("current")
-  getProfile(@User() user: UserEntity) {
+  async getProfile(@User() user: UserEntity) {
     return user;
+  }
+
+  @Auth()
+  @Patch()
+  updateSubscribtion(@User() user: UserEntity, @Body() updateUserSubscribtion: UpdateUserSubscribtion,) {
+    return this.usersService.updateSubscribtion(user._id, updateUserSubscribtion);
+  }
+
+  @Auth()
+  @Patch("avatars")
+  updateAvatar(@User() user: UserEntity) {
+    return this.usersService.updateAvatar(user._id);
+  }
+
+  @Auth()
+  @Get("verify/:verificationToken")
+  verifyToken(@Param("verificationToken") token: string,) {
+    return this.authService.verifyToken(token);
+  }
+
+  @Auth()
+  @Post("verify")
+  sendVerification(@User() user: UserEntity) {
+    return this.authService.sendVerification(user._id);
   }
 }

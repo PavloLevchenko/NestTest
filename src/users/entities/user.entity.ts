@@ -1,4 +1,10 @@
+import { IsString } from "class-validator";
+
 export class UserEntity {
-    email:string
-    password:string
+  @IsString()
+  _id: string;
+  @IsString()
+  email: string;
+  @IsString()
+  password: string;
 }
