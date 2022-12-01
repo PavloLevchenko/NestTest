@@ -1,4 +1,9 @@
-import { PipeTransform, Injectable, ArgumentMetadata, BadRequestException } from '@nestjs/common';
+import {
+  PipeTransform,
+  Injectable,
+  ArgumentMetadata,
+  BadRequestException,
+} from "@nestjs/common";
 
 @Injectable()
 export class EmptyBodyValidationPipe implements PipeTransform<any> {
@@ -6,8 +11,8 @@ export class EmptyBodyValidationPipe implements PipeTransform<any> {
     if (!metatype || !this.toValidate(metatype)) {
       return value;
     }
-    if(value){
-        throw new BadRequestException('Body object is empty');
+    if (Object.keys(value).length === 0) {
+      throw new BadRequestException("Body object is empty");
     }
     return value;
   }

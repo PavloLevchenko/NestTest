@@ -36,7 +36,7 @@ export class LocalAuthGuard extends AuthGuard(authConstants.localStrategyName) {
     status?: any,
   ) {
     const request = context.switchToHttp().getRequest();
-    //this.validateCredentials(request.body);
+    this.validateCredentials(request.body);
     return super.handleRequest(err, user, info, context, status);
   }
 }

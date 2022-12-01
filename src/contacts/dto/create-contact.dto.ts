@@ -2,7 +2,7 @@ import { ApiProperty } from "@nestjs/swagger";
 import { IsString, IsBoolean, IsEmail } from "class-validator";
 
 export class CreateContactDto {
-  @ApiProperty({ example: "John " })
+  @ApiProperty({ example: "John" })
   @IsString()
   name: string;
   @ApiProperty({ example: "user@gmail.com" })

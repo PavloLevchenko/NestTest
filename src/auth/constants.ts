@@ -3,4 +3,6 @@ export const authConstants = {
   expiresIn: "10h",
   localStrategyName: "Email and password",
   localStrategyFields: { usernameField: "email", passwordField: "password" },
+  verificationEmailError: "Email verification required",
+  verificationPassedError: "Verification has already been passed",
 };

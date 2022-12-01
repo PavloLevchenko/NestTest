@@ -15,7 +15,7 @@ import {
   UpdateContactDto,
   UpdateContactFavoryteDto,
 } from "./dto";
-import { EmptyBodyValidationPipe } from "../common/emptyBodyValidationPipe";
+import { EmptyBodyValidationPipe } from "../common/empty-body-validation.pipe";
 import {
   ApiResponse,
   ApiTags,

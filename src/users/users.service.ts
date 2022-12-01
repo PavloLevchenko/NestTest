@@ -1,45 +1,50 @@
+import { Document, Model } from "mongoose";
+import { InjectModel } from "@nestjs/mongoose";
 import { Injectable } from "@nestjs/common";
 import { CreateUserDto } from "./dto/create-user.dto";
-import { UpdateUserSubscribtion } from "./dto/update-user-subscribtion.dto";
 import { UserEntity } from "./entities/user.entity";
+import { v4 as uuid } from "uuid";
+import * as gravatar from "gravatar";
 
 @Injectable()
 export class UsersService {
-  private readonly users = [
-    {
-      _id: "1",
-      email: "teasetrnet@gmail.com",
-      password: "Examplepassword1",
-      subscription: "starter",
-    },
-    {
-      _id: "2",
-      email: "maria",
-      password: "guess",
-      subscription: "starter",
-    },
-  ];
+  constructor(
+    @InjectModel(UserEntity.name)
+    private users: Model<Document<UserEntity>>,
+  ) {}
 
-  async findUserById(id: string): Promise<UserEntity | undefined> {
-    return this.users.find((user) => user._id === id);
+  async findUserById(id: string): Promise<UserEntity | null | undefined> {
+    return await this.users.findById(id).lean();
   }
 
-  async findUserByEmail(email: string): Promise<UserEntity | undefined> {
-    return this.users.find((user) => user.email === email);
+  async findUserByEmail(email: string): Promise<UserEntity | null | undefined> {
+    return await this.users.findOne({ email }).lean();
+  }
+
+  async findUserByToken(verificationToken: string) {
+    return await this.users.findOneAndUpdate(
+      { verificationToken },
+      { verificationToken: null, verify: true },
+    );
   }
 
   async signup(createUserDto: CreateUserDto) {
-    return `This action creates a #${createUserDto.email} user`;
+    const verificationToken = uuid();
+    const avatarURL = gravatar.url(createUserDto.email, { s: "250" });
+    const user = await this.users.create({
+      ...createUserDto,
+      verificationToken,
+      avatarURL,
+    });
+    return user;
   }
 
-  async updateSubscribtion(
-    { _id }: UserEntity,
-    { subscription }: UpdateUserSubscribtion,
-  ) {
-    return `This action updates a #${_id} user subscribtion #${subscription}`;
-  }
-
-  async updateAvatar(id: string) {
-    return `This action updates avatar #${id} user`;
+  async update({ _id }: UserEntity, body: any) {
+    return await this.users
+      .findByIdAndUpdate(_id, body, {
+        new: true,
+        runValidators: true,
+      })
+      .lean();
   }
 }

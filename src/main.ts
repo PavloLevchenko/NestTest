@@ -7,6 +7,8 @@ import { NestExpressApplication } from "@nestjs/platform-express";
 import { AppModule } from "./app.module";
 import { TimeoutInterceptor } from "./common/timeout.interceptor";
 import { config } from "./swagger/config";
+import { join } from "path";
+import { userConstants } from "./users/constants";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -28,6 +30,9 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("api", app, document, {
     swaggerOptions: { defaultModelsExpandDepth: -1 },
+  });
+  app.useStaticAssets(join(__dirname, '..', userConstants.avatarPath), {
+    prefix: userConstants.avatarPath,
   });
   await app.listen(3000);
 }

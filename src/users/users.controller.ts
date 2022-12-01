@@ -8,9 +8,10 @@ import {
   Req,
   UseGuards,
   UseInterceptors,
+  UploadedFile,
 } from "@nestjs/common";
 import { AuthService } from "../auth/auth.service";
-import { LocalAuthGuard, JwtAuthGuard } from "../auth/guards";
+import { LocalAuthGuard } from "../auth/guards";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UserEntity } from "./entities/user.entity";
 import { User } from "src/common/user.decorator";
@@ -20,15 +21,22 @@ import { LoginDto } from "src/auth/dto/login.dto";
 import { UsersService } from "./users.service";
 import { UpdateUserSubscribtion } from "./dto/update-user-subscribtion.dto";
 import { FormatUserInterceptor } from "src/common/format-user.interceptor";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { FileSizeValidationPipe } from "src/common/file-size-validation.pipe";
+import { SharpPipe } from "src/common/sharp.pipe";
+import { VerifyUserEmailDto } from "./dto/verify-user-email.dto";
 
-@ApiTags('users')
+@ApiTags("users")
 @Controller("api/users")
 export class UsersController {
-  constructor(private authService: AuthService, private usersService: UsersService) {}
+  constructor(
+    private authService: AuthService,
+    private usersService: UsersService,
+  ) {}
 
   @Post("signup")
   @UseInterceptors(FormatUserInterceptor)
-  async signup(@Body() body:CreateUserDto) {
+  async signup(@Body() body: CreateUserDto) {
     return this.usersService.signup(body);
   }
 
@@ -41,8 +49,8 @@ export class UsersController {
 
   @Auth()
   @Get("logout")
-  logout() {
-    return this.authService.logout();
+  logout(@User() user: UserEntity) {
+    return this.authService.logout(user);
   }
 
   @Auth()
@@ -53,26 +61,39 @@ export class UsersController {
   }
 
   @Auth()
+  @Get("current/avatar")
+  async getAvatar(@User() user: UserEntity) {
+    return user.avatarURL;
+  }
+
+  @Auth()
   @Patch()
-  updateSubscribtion(@User() user: UserEntity, @Body() updateUserSubscribtion: UpdateUserSubscribtion,) {
-    return this.usersService.updateSubscribtion(user, updateUserSubscribtion);
+  updateSubscribtion(
+    @User() user: UserEntity,
+    @Body() updateUserSubscribtion: UpdateUserSubscribtion,
+  ) {
+    return this.usersService.update(user, updateUserSubscribtion);
   }
 
   @Auth()
   @Patch("avatars")
-  updateAvatar(@User() user: UserEntity) {
-    return this.usersService.updateAvatar(user._id);
+  @UseInterceptors(FileInterceptor("avatar"))
+  updateAvatar(
+    @User() user: UserEntity,
+    @UploadedFile(FileSizeValidationPipe(), SharpPipe)
+    avatarURL: string,
+  ) {
+    return this.usersService.update(user, { avatarURL });
   }
 
   @Auth()
   @Get("verify/:verificationToken")
-  verifyToken(@Param("verificationToken") token: string,) {
+  verifyToken(@Param("verificationToken") token: string) {
     return this.authService.verifyToken(token);
   }
 
-  @Auth()
   @Post("verify")
-  sendVerification(@User() user: UserEntity) {
-    return this.authService.sendVerification(user._id);
+  sendVerification(@Body() verifyUserEmailDto: VerifyUserEmailDto) {
+    return this.authService.sendVerification(verifyUserEmailDto);
   }
 }
