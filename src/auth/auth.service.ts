@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   UnauthorizedException,
+  NotFoundException,
   Injectable,
 } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
@@ -10,7 +11,6 @@ import { UserEntity } from "src/users/entities/user.entity";
 import { UsersService } from "../users/users.service";
 import { authConstants } from "./constants";
 import { LoginResponseDto } from "./dto/login-response.dto";
-import { TokenForEmailResponseDto } from "./dto/token-for-email-response.dto";
 
 @Injectable()
 export class AuthService {
@@ -55,24 +55,22 @@ export class AuthService {
   }
 
   async logout(user: UserEntity) {
-    return await this.usersService.update(user, { token: null });
+    return await this.usersService.update(user, { token: "" });
   }
 
   async verifyToken(token: string) {
-    return await this.usersService.findUserByToken(token);
+    if (!(await this.usersService.findUserByToken(token))) {
+      throw new NotFoundException(authConstants.errorEmailVerificationMessage);
+    }
+    return { message: authConstants.confirmEmailVerificatioMessage };
   }
 
-  async sendVerification({
-    email,
-  }: VerifyUserEmailDto): Promise<TokenForEmailResponseDto | null> {
+  async checkEmailVerification({ email }: VerifyUserEmailDto) {
     const user = await this.usersService.findUserByEmail(email);
     if (user && user.verify) {
       throw new BadRequestException(authConstants.verificationPassedError);
     }
-    return user
-      ? {
-          message: authConstants.sendVerificationEmailMessage,
-        }
-      : null;
+    const verificationToken = user ? user.verificationToken : "null";
+    return { user: { email, verificationToken } };
   }
 }

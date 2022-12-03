@@ -1,4 +1,6 @@
 import * as bCrypt from "bcryptjs";
+import { nestApp } from "src/main";
+import { userConstants } from "src/users/constants";
 
 export const hashPassword = async function (password: string) {
   const salt = await bCrypt.genSalt();
@@ -11,4 +13,12 @@ export const comparePassword = async function (
   hashedPassword: string,
 ) {
   return await bCrypt.compare(password, hashedPassword);
+};
+
+export const getVerificationUrl = async (verificationToken: string) => {
+  return (
+    (await nestApp.getUrl()) +
+    userConstants.emailVerificationPath +
+    verificationToken
+  );
 };

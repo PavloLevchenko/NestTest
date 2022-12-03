@@ -27,7 +27,7 @@ import { Auth } from "src/auth/decorators/auth.decorator";
 import { LoginDto } from "src/auth/dto/login.dto";
 import { UsersService } from "./users.service";
 import { UpdateUserSubscribtion } from "./dto/update-user-subscribtion.dto";
-import { FormatUserInterceptor } from "src/auth/interceptors/format-user.interceptor";
+import { FormatUserInterceptor } from "src/users/interceptors/format-user.interceptor";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { FileSizeValidationPipe } from "src/common/pipes/file-size-validation.pipe";
 import { SharpPipe } from "src/users/pipes/sharp.pipe";
@@ -39,6 +39,8 @@ import { userConstants } from "./constants";
 import { UpdatedUserAvatar } from "./dto/updated-user-avatar.dto";
 import { ConfirmEmailResponseDto } from "src/auth/dto/confirm-email-response.dto copy";
 import { TokenForEmailResponseDto } from "src/auth/dto/token-for-email-response.dto";
+import { EmailVerificationInterceptor } from "src/auth/interceptors/email-verivication.interceptor";
+import { authConstants } from "src/auth/constants";
 
 @ApiTags("users")
 @UseInterceptors(EmptyResponseInterceptor)
@@ -57,14 +59,14 @@ export class UsersController {
     type: UserDto,
   })
   @ApiResponse({ status: 400, description: appConstants.missingFieldsError })
-  @UseInterceptors(FormatUserInterceptor)
+  @UseInterceptors(FormatUserInterceptor, EmailVerificationInterceptor)
   @Post("signup")
   async signup(@Body() body: CreateUserDto) {
     return await this.usersService.signup(body);
   }
 
   /**
-   * Creating new user, sending email verification token
+   * Authenticating user, sending access token
    */
   @UseGuards(LocalAuthGuard)
   @HttpCode(200)
@@ -146,10 +148,14 @@ export class UsersController {
   /**
    * Email verification
    */
-   @ApiOkResponse({
+  @ApiOkResponse({
     type: ConfirmEmailResponseDto,
   })
   @ApiResponse({ status: 400, description: appConstants.missingFieldsError })
+  @ApiResponse({
+    status: 404,
+    description: authConstants.errorEmailVerificationMessage,
+  })
   @Get("verify/:verificationToken")
   async verifyToken(@Param("verificationToken") token: string) {
     return await this.authService.verifyToken(token);
@@ -162,9 +168,13 @@ export class UsersController {
   @ApiOkResponse({
     type: TokenForEmailResponseDto,
   })
-  @ApiResponse({ status: 400, description: appConstants.missingFieldsError })
+  @ApiResponse({
+    status: 400,
+    description: authConstants.verificationPassedError,
+  })
+  @UseInterceptors(EmailVerificationInterceptor)
   @Post("verify")
   async sendVerification(@Body() verifyUserEmailDto: VerifyUserEmailDto) {
-    return await this.authService.sendVerification(verifyUserEmailDto);
+    return await this.authService.checkEmailVerification(verifyUserEmailDto);
   }
 }

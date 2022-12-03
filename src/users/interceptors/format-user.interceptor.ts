@@ -6,21 +6,23 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { map, Observable } from "rxjs";
-import { authConstants } from "../constants";
-import { UserDto } from "../dto/user.dto";
+import { authConstants } from "../../auth/constants";
+import { UserDto } from "../../auth/dto/user.dto";
 
 @Injectable()
 export class FormatUserInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<UserDto> {
     return next.handle().pipe(
       map((user) => {
         if (!user) {
           throw new UnauthorizedException(authConstants.userEmptyObjectError);
         }
-        const userDto = new UserDto();
-        userDto.email = user.email;
-        userDto.subscription = user.subscription;
-        return userDto;
+        return {
+          user: {
+            email: user.email,
+            subscription: user.subscription,
+          },
+        };
       }),
     );
   }

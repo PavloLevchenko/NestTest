@@ -3,6 +3,7 @@ export const userConstants = {
   avatarExtension: ".webp",
   tempFolder: "/tmp",
   successLogoutResponse: "Logout success response",
+  emailVerificationPath: "/api/users/verify/",
 };
 
 export enum subscriptionEnum {

@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 import { NestFactory } from "@nestjs/core";
-import { ValidationPipe } from "@nestjs/common";
+import { Logger, ValidationPipe } from "@nestjs/common";
 import { SwaggerModule } from "@nestjs/swagger";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { AppModule } from "./app.module";
@@ -9,13 +9,16 @@ import { TimeoutInterceptor } from "src/common/interceptors/timeout.interceptor"
 import { config } from "./swagger/config";
 import { join } from "path";
 import { userConstants } from "./users/constants";
+import { appConstants } from "./constants";
+export let nestApp: NestExpressApplication;
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+  const logger = new Logger();
+  nestApp = await NestFactory.create<NestExpressApplication>(AppModule, {
     abortOnError: false,
   });
-  app.useGlobalInterceptors(new TimeoutInterceptor());
-  app.useGlobalPipes(
+  nestApp.useGlobalInterceptors(new TimeoutInterceptor());
+  nestApp.useGlobalPipes(
     new ValidationPipe({
       transform: true,
       whitelist: true,
@@ -23,18 +26,29 @@ async function bootstrap() {
       validateCustomDecorators: true,
       transformOptions: {
         enableImplicitConversion: true,
-    },
+      },
     }),
   );
-  app.enableCors();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup("api", app, document, {
+  nestApp.enableCors();
+  const document = SwaggerModule.createDocument(nestApp, config);
+  SwaggerModule.setup(appConstants.swaggerUrl, nestApp, document, {
     swaggerOptions: { defaultModelsExpandDepth: -1 },
   });
-  app.useStaticAssets(join(__dirname, '..', userConstants.avatarPath), {
+  nestApp.useStaticAssets(join(__dirname, "..", userConstants.avatarPath), {
     prefix: userConstants.avatarPath,
   });
-  await app.listen(3000);
+  await nestApp.listen(3000);
+  logger.log(`Application is running on: ${await nestApp.getUrl()}`);
+  logger.log(
+    `Swagger awaliable on: ${
+      (await nestApp.getUrl()) + appConstants.swaggerUrl
+    }`,
+  );
+  logger.log(
+    `Swagger json awaliable on: ${
+      (await nestApp.getUrl()) + appConstants.swaggerJSON
+    }`,
+  );
 }
 
 bootstrap();

@@ -21,28 +21,38 @@ export class UsersService {
     return await this.users.findOne({ email }).lean();
   }
 
-  async findUserByToken(verificationToken: string): Promise<UserEntity | null | undefined> {
-    return await this.users.findOneAndUpdate(
-      { verificationToken },
-      { verificationToken: null, verify: true },
-    ).lean();
+  async findUserByToken(
+    verificationToken: string,
+  ): Promise<UserEntity | null | undefined> {
+    return await this.users
+      .findOneAndUpdate(
+        { verificationToken },
+        { verificationToken: null, verify: true },
+      )
+      .lean();
   }
 
-  async signup(createUserDto: CreateUserDto): Promise<Document<UserEntity, any, any>> {
-    if(await this.findUserByEmail(createUserDto.email)){
-      new ConflictException();
+  async signup(createUserDto: CreateUserDto) {
+    const existUser = await this.findUserByEmail(createUserDto.email);
+    if (existUser) {
+      throw new ConflictException();
     }
     const verificationToken = uuid();
-    const avatarURL = gravatar.url(createUserDto.email, { s: "250" }).replace("//", "");
+    const avatarURL = gravatar
+      .url(createUserDto.email, { s: "250" })
+      .replace("//", "");
     const user = await this.users.create({
       ...createUserDto,
       verificationToken,
       avatarURL,
     });
-    return user;
+    return { user };
   }
 
-  async update({ _id }: UserEntity, body: any): Promise<UserEntity | null | undefined> {
+  async update(
+    { _id }: UserEntity,
+    body: any,
+  ): Promise<UserEntity | null | undefined> {
     return await this.users
       .findByIdAndUpdate(_id, body, {
         new: true,
