@@ -5,4 +5,7 @@ export const authConstants = {
   localStrategyFields: { usernameField: "email", passwordField: "password" },
   verificationEmailError: "Email verification required",
   verificationPassedError: "Verification has already been passed",
+  userEmptyObjectError: "Bad User object",
+  confirmEmailMessage: "Verification successful",
+  sendVerificationEmailMessage: "Verification email sent",
 };

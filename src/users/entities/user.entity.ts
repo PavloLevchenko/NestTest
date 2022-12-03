@@ -2,7 +2,7 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Document } from "mongoose";
 import { ApiHideProperty, ApiProperty } from "@nestjs/swagger";
 import { IsBoolean, IsEmail, IsString, MinLength } from "class-validator";
-import { userConstants } from "../constants";
+import { subscriptionEnum } from "../constants";
 import { hashPassword } from "src/common/helpers";
 
 export type UserDocument = UserEntity & Document<UserEntity>;
@@ -14,6 +14,7 @@ export class UserEntity {
   @Prop({
     type: String,
     required: [true, "Email is required"],
+    index: true,
     unique: true,
   })
   @ApiProperty({ example: "user@gmail.com" })
@@ -29,10 +30,10 @@ export class UserEntity {
   password: string;
   @Prop({
     type: String,
-    enum: userConstants.subscriptionEnum,
-    default: userConstants.subscriptionEnum[0],
+    enum: subscriptionEnum,
+    default: subscriptionEnum[0],
   })
-  @ApiProperty({ enum: userConstants.subscriptionEnum })
+  @ApiProperty({ enum: subscriptionEnum })
   @IsString()
   subscription: string;
   @Prop({
@@ -41,7 +42,7 @@ export class UserEntity {
   })
   @IsString()
   token: string;
-  @Prop({ type: String, index: true, unique: true, })
+  @Prop({ type: String, index: true, unique: true })
   @IsString()
   verificationToken: string;
   @Prop({

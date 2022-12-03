@@ -2,5 +2,11 @@ export const userConstants = {
   avatarPath: "/public/avatars",
   avatarExtension: ".webp",
   tempFolder: "/tmp",
-  subscriptionEnum: ["starter", "pro", "business"],
+  successLogoutResponse: "Logout success response",
 };
+
+export enum subscriptionEnum {
+  "starter",
+  "pro",
+  "business",
+}

@@ -5,7 +5,7 @@ import { ValidationPipe } from "@nestjs/common";
 import { SwaggerModule } from "@nestjs/swagger";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { AppModule } from "./app.module";
-import { TimeoutInterceptor } from "./common/timeout.interceptor";
+import { TimeoutInterceptor } from "src/common/interceptors/timeout.interceptor";
 import { config } from "./swagger/config";
 import { join } from "path";
 import { userConstants } from "./users/constants";

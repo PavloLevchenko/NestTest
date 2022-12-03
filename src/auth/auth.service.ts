@@ -9,6 +9,8 @@ import { VerifyUserEmailDto } from "src/users/dto/verify-user-email.dto";
 import { UserEntity } from "src/users/entities/user.entity";
 import { UsersService } from "../users/users.service";
 import { authConstants } from "./constants";
+import { LoginResponseDto } from "./dto/login-response.dto";
+import { TokenForEmailResponseDto } from "./dto/token-for-email-response.dto";
 
 @Injectable()
 export class AuthService {
@@ -29,7 +31,7 @@ export class AuthService {
     return null;
   }
 
-  async login(user: UserEntity) {
+  async login(user: UserEntity): Promise<LoginResponseDto> {
     const payload = { sub: user._id };
     const token = this.jwtService.sign(payload);
     await this.usersService.update(user, { token });
@@ -60,11 +62,17 @@ export class AuthService {
     return await this.usersService.findUserByToken(token);
   }
 
-  async sendVerification({ email }: VerifyUserEmailDto) {
+  async sendVerification({
+    email,
+  }: VerifyUserEmailDto): Promise<TokenForEmailResponseDto | null> {
     const user = await this.usersService.findUserByEmail(email);
     if (user && user.verify) {
       throw new BadRequestException(authConstants.verificationPassedError);
     }
-    return user ? user.verificationToken : null;
+    return user
+      ? {
+          message: authConstants.sendVerificationEmailMessage,
+        }
+      : null;
   }
 }

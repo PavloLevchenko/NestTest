@@ -6,6 +6,8 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { map, Observable } from "rxjs";
+import { authConstants } from "../constants";
+import { UserDto } from "../dto/user.dto";
 
 @Injectable()
 export class FormatUserInterceptor implements NestInterceptor {
@@ -13,9 +15,12 @@ export class FormatUserInterceptor implements NestInterceptor {
     return next.handle().pipe(
       map((user) => {
         if (!user) {
-          throw new UnauthorizedException("Bad User object");
+          throw new UnauthorizedException(authConstants.userEmptyObjectError);
         }
-        return { email: user.email, subscription: user.subscription };
+        const userDto = new UserDto();
+        userDto.email = user.email;
+        userDto.subscription = user.subscription;
+        return userDto;
       }),
     );
   }

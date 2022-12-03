@@ -9,24 +9,39 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  HttpCode,
 } from "@nestjs/common";
 import { AuthService } from "../auth/auth.service";
 import { LocalAuthGuard } from "../auth/guards";
 import { CreateUserDto } from "./dto/create-user.dto";
 import { UserEntity } from "./entities/user.entity";
-import { User } from "src/common/user.decorator";
-import { ApiBody, ApiTags } from "@nestjs/swagger";
-import { Auth } from "src/common/auth.decorator";
+import { User } from "src/auth/decorators/user.decorator";
+import {
+  ApiBody,
+  ApiOkResponse,
+  ApiResponse,
+  ApiTags,
+  ApiNoContentResponse,
+} from "@nestjs/swagger";
+import { Auth } from "src/auth/decorators/auth.decorator";
 import { LoginDto } from "src/auth/dto/login.dto";
 import { UsersService } from "./users.service";
 import { UpdateUserSubscribtion } from "./dto/update-user-subscribtion.dto";
-import { FormatUserInterceptor } from "src/common/format-user.interceptor";
+import { FormatUserInterceptor } from "src/auth/interceptors/format-user.interceptor";
 import { FileInterceptor } from "@nestjs/platform-express";
-import { FileSizeValidationPipe } from "src/common/file-size-validation.pipe";
-import { SharpPipe } from "src/common/sharp.pipe";
+import { FileSizeValidationPipe } from "src/common/pipes/file-size-validation.pipe";
+import { SharpPipe } from "src/users/pipes/sharp.pipe";
 import { VerifyUserEmailDto } from "./dto/verify-user-email.dto";
+import { appConstants } from "src/constants";
+import { EmptyResponseInterceptor } from "src/common/interceptors/empty-response.interceptor";
+import { UserDto } from "src/auth/dto/user.dto";
+import { userConstants } from "./constants";
+import { UpdatedUserAvatar } from "./dto/updated-user-avatar.dto";
+import { ConfirmEmailResponseDto } from "src/auth/dto/confirm-email-response.dto copy";
+import { TokenForEmailResponseDto } from "src/auth/dto/token-for-email-response.dto";
 
 @ApiTags("users")
+@UseInterceptors(EmptyResponseInterceptor)
 @Controller("api/users")
 export class UsersController {
   constructor(
@@ -34,66 +49,122 @@ export class UsersController {
     private usersService: UsersService,
   ) {}
 
-  @Post("signup")
+  /**
+   * Creating new user, sending confirmation email
+   */
+  @HttpCode(200)
+  @ApiOkResponse({
+    type: UserDto,
+  })
+  @ApiResponse({ status: 400, description: appConstants.missingFieldsError })
   @UseInterceptors(FormatUserInterceptor)
+  @Post("signup")
   async signup(@Body() body: CreateUserDto) {
-    return this.usersService.signup(body);
+    return await this.usersService.signup(body);
   }
 
+  /**
+   * Creating new user, sending email verification token
+   */
   @UseGuards(LocalAuthGuard)
+  @HttpCode(200)
+  @ApiResponse({ status: 400, description: appConstants.missingFieldsError })
   @ApiBody({ type: LoginDto })
   @Post("login")
   async login(@Req() req: any) {
-    return this.authService.login(req.user);
+    return await this.authService.login(req.user);
   }
 
+  /**
+   * Log out
+   */
   @Auth()
+  @HttpCode(204)
+  @ApiNoContentResponse({ description: userConstants.successLogoutResponse })
   @Get("logout")
-  logout(@User() user: UserEntity) {
-    return this.authService.logout(user);
+  async logout(@User() user: UserEntity) {
+    return await this.authService.logout(user);
   }
 
+  /**
+   * Get current user
+   */
   @Auth()
-  @Get("current")
   @UseInterceptors(FormatUserInterceptor)
+  @Get("current")
   async getProfile(@User() user: UserEntity) {
     return user;
   }
 
+  /**
+   * Get user avatar
+   */
   @Auth()
+  @ApiOkResponse({
+    type: UpdatedUserAvatar,
+  })
   @Get("current/avatar")
   async getAvatar(@User() user: UserEntity) {
-    return user.avatarURL;
+    return { avatarUrl: user.avatarURL };
   }
 
+  /**
+   * Updating user subscribtion
+   */
+  @ApiOkResponse({
+    type: UpdateUserSubscribtion,
+  })
+  @ApiResponse({ status: 400, description: appConstants.missingFieldsError })
   @Auth()
   @Patch()
-  updateSubscribtion(
+  async updateSubscribtion(
     @User() user: UserEntity,
     @Body() updateUserSubscribtion: UpdateUserSubscribtion,
   ) {
-    return this.usersService.update(user, updateUserSubscribtion);
+    return await this.usersService.update(user, updateUserSubscribtion);
   }
 
+  /**
+   * Updating user avatar
+   */
+  @ApiOkResponse({
+    type: UpdatedUserAvatar,
+  })
+  @ApiResponse({ status: 400, description: appConstants.missingFieldsError })
   @Auth()
-  @Patch("avatars")
   @UseInterceptors(FileInterceptor("avatar"))
-  updateAvatar(
+  @Patch("avatars")
+  async updateAvatar(
     @User() user: UserEntity,
     @UploadedFile(FileSizeValidationPipe(), SharpPipe)
     avatarURL: string,
   ) {
-    return this.usersService.update(user, { avatarURL });
+    await this.usersService.update(user, { avatarURL });
+    return { avatarURL };
   }
 
-  @Auth()
+  /**
+   * Email verification
+   */
+   @ApiOkResponse({
+    type: ConfirmEmailResponseDto,
+  })
+  @ApiResponse({ status: 400, description: appConstants.missingFieldsError })
   @Get("verify/:verificationToken")
-  verifyToken(@Param("verificationToken") token: string) {
-    return this.authService.verifyToken(token);
+  async verifyToken(@Param("verificationToken") token: string) {
+    return await this.authService.verifyToken(token);
   }
 
+  /**
+   * Sending email verification token
+   */
+  @HttpCode(200)
+  @ApiOkResponse({
+    type: TokenForEmailResponseDto,
+  })
+  @ApiResponse({ status: 400, description: appConstants.missingFieldsError })
   @Post("verify")
-  sendVerification(@Body() verifyUserEmailDto: VerifyUserEmailDto) {
-    return this.authService.sendVerification(verifyUserEmailDto);
+  async sendVerification(@Body() verifyUserEmailDto: VerifyUserEmailDto) {
+    return await this.authService.sendVerification(verifyUserEmailDto);
   }
 }
