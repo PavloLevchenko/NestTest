@@ -14,7 +14,9 @@ import { UserEntity, UserSchema } from "./entities/user.entity";
     MulterModule.register({
       dest: join(process.cwd(), userConstants.tempFolder),
     }),
-    MongooseModule.forFeature([{ name: UserEntity.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: userConstants.userCollectionName, schema: UserSchema },
+    ]),
   ],
   controllers: [UsersController],
   providers: [UsersService],

@@ -5,11 +5,12 @@ import { CreateUserDto } from "./dto/create-user.dto";
 import { UserEntity } from "./entities/user.entity";
 import { v4 as uuid } from "uuid";
 import * as gravatar from "gravatar";
+import { userConstants } from "./constants";
 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(UserEntity.name)
+    @InjectModel(userConstants.userCollectionName)
     private users: Model<Document<UserEntity>>,
   ) {}
 

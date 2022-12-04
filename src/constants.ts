@@ -3,4 +3,5 @@ export const appConstants = {
   missingFieldsError: "Missing required fields",
   swaggerUrl: "/api",
   swaggerJSON: "/api-json",
+  healthPathDescription: "Path for cheking app health",
 };
